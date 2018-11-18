@@ -160,7 +160,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 95c25379500af5e4baf81582d4e57430, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -370,9 +370,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f066cca291a2a9b41918d21ea8cfebf2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 10
-  height: 10
+  width: 9
+  height: 9
+  mineCount: 12
+  countDirection: 1
   displayObject: {fileID: 34658536}
+  numbers:
+  - {fileID: 2800000, guid: 0735ac18a5971f742af8d3110f561c2b, type: 3}
+  - {fileID: 2800000, guid: d3b2354df045b474580cdc969c34ff71, type: 3}
+  - {fileID: 2800000, guid: 999f696eb28e23a42a855aad4352717c, type: 3}
+  - {fileID: 2800000, guid: 2a255138d0b0c9148976636ee95f8c07, type: 3}
+  - {fileID: 2800000, guid: a935b77d8e6025b448706dab0d3ac91f, type: 3}
+  - {fileID: 2800000, guid: 3fcec2bfb9853034b903f559dea2b956, type: 3}
+  - {fileID: 2800000, guid: d9ca20f6ca2c7034dbaf20c5020188d0, type: 3}
+  - {fileID: 2800000, guid: b7af7d63a8f27e144af50feb05f43f36, type: 3}
+  - {fileID: 2800000, guid: 30bfacee15c9cfa4fa08ed11431f24c5, type: 3}
+  - {fileID: 2800000, guid: 422991cec29e1f94089ae93b5b8ffcbc, type: 3}
+  numberDisplay: 1
 --- !u!4 &1592081172
 Transform:
   m_ObjectHideFlags: 0
