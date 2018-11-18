@@ -12,6 +12,7 @@ public class MinesweeperModel {
     private int[,] mines;
     private int[,] counts;
     private float[,] perlinMap;
+    private bool[,] opened;
     private Texture2D perlinMapTexture;
 
 
@@ -21,6 +22,7 @@ public class MinesweeperModel {
         this.height = height;
         mines = new int[this.height, this.width];
         counts= new int[this.height, this.width];
+        opened = new bool[this.height, this.width];
         seed = Random.Range(0, 10000);
         this.mineCount = mineCount;
         initBoard();
@@ -36,6 +38,7 @@ public class MinesweeperModel {
             {
                 counts[y, x] = 0;
                 mines[y, x] = 0;
+                opened[y, x] = false;
             }
         }
     }
@@ -50,7 +53,7 @@ public class MinesweeperModel {
         int placed = 0;
         while (placed < mineCount)
         {
-            int y = Random.Range(0, height);
+            int y = Random.Range(0, height-2);//-2 ensures a safe starting position
             int x = Random.Range(0, width);
             if (placed < mineCount)
             {
@@ -68,7 +71,13 @@ public class MinesweeperModel {
 
     public int getCount(int x, int y)
     {
-        return counts[y,x];
+        int count = counts[y, x];
+        if(!opened[y,x])
+        {
+            count = -1;
+        }
+
+        return count;
     }
 
     public void updateCounts(int x, int y)
@@ -77,7 +86,7 @@ public class MinesweeperModel {
         {
             for(int ix = x - 1; ix <= x + 1; ix++)
             {
-                if(ix >= 0 && ix < width && iy >= 0 && iy < height)
+                if(isValid(ix,iy))
                 {
                     counts[iy, ix]++;
                 }
@@ -85,6 +94,10 @@ public class MinesweeperModel {
         }
     }
 
+    public bool isValid(int x,int y)
+    {
+        return x >= 0 && x < width && y >= 0 && y < height;
+    }
   
     private bool randomChance(float successChance)
     {
@@ -109,6 +122,54 @@ public class MinesweeperModel {
         }
         perlinMapTexture.filterMode = FilterMode.Point;
         perlinMapTexture.Apply();
+    }
+
+    public bool clickSpace(int x, int y)
+    {
+        if(mines[y,x]==1)//clicked a mine
+        {
+            return true;
+        }else
+        {
+            processCell(x, y);
+        }
+        return false;
+    }
+
+    void processCell(int x,int y)
+    {
+        if (!isValid(x, y))
+        {
+            return;
+        }
+        if (opened[y, x])//only process closed cells
+        {
+            return;
+        }
+        
+        if(counts[y,x]>0)//this cell has a neighbor mine
+        {
+            opened[y, x] = true;//just open this cell
+        }else//this cell has no neighbor mines
+        {
+            opened[y, x] = true;
+            //Process neighbor mines recursion shouldn't blow up too big due to the three cases above
+            processCell(x+1, y);
+            processCell(x-1, y);
+            processCell(x, y+1);
+            processCell(x, y-1);
+            processCell(x+1, y+1);
+            processCell(x-1, y+1);
+            processCell(x+1, y-1);
+            processCell(x-1, y-1);
+        }
+
+    }
+
+    public void getSafeStart(out int x, out int y)
+    {
+        y = height - 1;
+        x = Random.Range(0, width);
     }
 
     public int toTextureHeight(int heightInBoardCoords)

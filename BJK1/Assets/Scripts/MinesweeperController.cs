@@ -9,6 +9,8 @@ public class MinesweeperController : MonoBehaviour {
     public int mineCount;
     public int countDirection = 1;
 
+    public bool useMovementInput = true;
+
     private float blinkTime = .5f;
     private float blinkCount = 0f;
 
@@ -18,7 +20,16 @@ public class MinesweeperController : MonoBehaviour {
     public GameObject displayObject;
     private Renderer rend;
 
+    private int blockWidth;
+    private int blockHeight;
+    private int scaledWidth;
+    private int scaledHeight;
+
     public List<Texture2D> numbers;
+
+    public Texture2D closed;
+    public Texture2D cursor;
+
 
     public bool numberDisplay = true;
 
@@ -27,33 +38,34 @@ public class MinesweeperController : MonoBehaviour {
 
     Texture2D number;//global to fix nasty memory leak with temp tex2d in unity
     Texture2D board;
+    Texture2D perlinBoard;
     // Use this for initialization
     void Start () {
+       
+        initGame();
+	}
+
+    public void initGame()
+    {
         Random.InitState(System.DateTime.Now.Millisecond);
         rend = displayObject.GetComponent<Renderer>();
         game = new MinesweeperModel(width, height, mineCount);
-        initTextures();
-	}
 
-    public void initTextures()
-    {
-        int blockWidth = numbers[0].width;
-        int blockHeight = numbers[0].height;
 
-        int scaledWidth = width * blockWidth;
-        int scaledHeight = height * blockHeight;
+        blockWidth = numbers[0].width;
+        blockHeight = numbers[0].height;
+
+        scaledWidth = width * blockWidth;
+        scaledHeight = height * blockHeight;
         board = new Texture2D(scaledWidth, scaledHeight);
+
+        game.getSafeStart(out currentX, out currentY);        
     }
 
 	// Update is called once per frame
 	void Update () {
-        blinkCount += Time.deltaTime * countDirection;
-        Texture2D board=getNumberBoard();
-
-        if (!numberDisplay)
-        {
-            board= game.getPerlinMapTexture();
-        }
+        procInput();
+        blinkCount += Time.deltaTime * countDirection;     
        
        
         if (blinkCount>=blinkTime)
@@ -62,43 +74,86 @@ public class MinesweeperController : MonoBehaviour {
         }else if(blinkCount<=0)
         {
             countDirection = 1;
-        }
+        }       
 
-        if(countDirection>0)
+
+        if (numberDisplay)
         {
-            drawCursor(board);
+
+            board = getNumberBoard();
+            if (countDirection > 0)
+            {
+                drawCursor(board);
+            }
+            rend.material.mainTexture = board;
+        }
+        else
+        {
+            perlinBoard = game.getPerlinMapTexture();
+            rend.material.mainTexture = perlinBoard;
         }
 
-
-        rend.material.mainTexture = board;
+        
 	}
+    public void procInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) || useMovementInput)
+        {
+            clickCurrentPosition();
+        }
+
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            currentX++;
+        }
+        else if(Input.GetKeyDown(KeyCode.A))
+        {
+            currentX--;
+        }
+        else if (Input.GetKeyDown(KeyCode.W))
+        {
+            currentY--;
+        }
+        else if (Input.GetKeyDown(KeyCode.S))
+        {
+            currentY++;
+        }
+
+       currentX = Mathf.Clamp(currentX, 0, width - 1);
+       currentY = Mathf.Clamp(currentY, 0, height - 1);
+
+        
+    }
+
+    public void clickCurrentPosition()
+    {
+        if(game.clickSpace(currentX, currentY))
+        {
+            Debug.Log("Game Over");
+        }
+    }
 
     public Texture2D getNumberBoard()
-    {
-
-        int blockWidth = numbers[0].width;
-        int blockHeight = numbers[0].height;
-
-        int scaledWidth = width * blockWidth;
-        int scaledHeight = height * blockHeight;
+    {       
         for (int y=0;y< height; y++)
         {
             for(int x=0;x< width; x++)
             {
-                number= numbers[game.getCount(x, y)];
+                int count = game.getCount(x, y);
+                number = count==-1?closed : numbers[count];
                 board.SetPixels(x*blockWidth, scaledHeight - ((y+1)*blockHeight), blockWidth, blockHeight, number.GetPixels());
-                number.hideFlags = HideFlags.HideAndDontSave;               
+                          
             }
         }
         board.Apply();
-        board.hideFlags = HideFlags.HideAndDontSave;      
+          
         return board;
         
     }
 
     public void drawCursor(Texture2D tex)
     {
-        //tex.SetPixel(currentX, height - currentY - 1, Color.yellow);
-       // tex.Apply();
+      tex.SetPixels(currentX*blockWidth, scaledHeight - ((currentY + 1) * blockHeight), blockWidth, blockHeight,cursor.GetPixels());
+      tex.Apply();
     }
 }
